@@ -1,130 +1,27 @@
 <!doctype html>
-<html lang="pt-PT">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Página com login simples (cliente)</title>
-  <style>
-    html,body { height:100%; margin:0; font-family: Arial, sans-serif; }
-    /* Janela 800x600 amarelo centrada */
-    .frame {
-      width:800px; height:600px;
-      background:#FFEB00; color:#111;
-      margin:40px auto; padding:20px;
-      box-sizing:border-box;
-      border-radius:8px; box-shadow:0 6px 20px rgba(0,0,0,0.15);
-      position:relative;
-    }
-
-    .login-overlay {
-      position:absolute; inset:0;
-      display:flex; align-items:center; justify-content:center;
-      backdrop-filter: blur(1px);
-    }
-    .login-box {
-      background:rgba(255,255,0,0.95);
-      padding:24px; border-radius:8px; width:320px;
-      box-shadow:0 6px 18px rgba(0,0,0,0.12);
-    }
-    label { display:block; margin-bottom:8px; font-weight:600; }
-    input[type="password"] { width:100%; padding:8px; margin-bottom:12px; box-sizing:border-box; }
-    .btn { padding:8px 12px; cursor:pointer; border:none; border-radius:6px; }
-    .btn-primary { background:#1976d2; color:white; }
-    .msg { color:#b00020; margin-bottom:8px; min-height:18px; }
-    .content { padding:10px; }
-    .small { font-size:12px; color:#333; margin-top:8px; }
-  </style>
-</head>
+<html>
+<head><meta charset="utf-8"><title>Login simples (cliente)</title></head>
 <body bgcolor=Yellow>
-  <div class="frame" id="app">
-    <h2>Aplicação (exemplo)</h2>
-    <div class="content" id="mainContent" style="display:none;">
-      <p>Bem-vindo! Conteúdo protegido por password (cliente).</p>
-      <p>Exemplo de conteúdo: aqui podes carregar ficheiros, mostrar gráficos, etc.</p>
-      <button class="btn" id="logout">Sair (limpar login)</button>
-    </div>
-
-    <!-- Overlay de login -->
-    <div class="login-overlay" id="loginOverlay" style="display:none;">
-      <div class="login-box">
-        <div class="msg" id="msg"></div>
-        <label for="pw">Password:</label>
-        <input id="pw" type="password" autocomplete="off" />
-        <div style="display:flex; gap:8px; justify-content:flex-end;">
-          <button class="btn" id="tryBtn">Entrar</button>
-          <button class="btn" id="cancelBtn">Cancelar</button>
-        </div>
-        <div class="small">Password de exemplo: <strong>hello</strong> — atenção: isto é visível no código.</div>
-      </div>
-    </div>
-  </div>
+  <h3>Login</h3>
+  <input id="pw" type="password" placeholder="password">
+  <button id="btn">Enviar</button>
+  <pre id="out"></pre>
 
   <script>
-    (function(){
-      const CORRECT = "hello";           // a password desejada
-      const STORAGE_KEY = "simple_logged_in"; // chave em localStorage
-      const overlay = document.getElementById('loginOverlay');
-      const main = document.getElementById('mainContent');
-      const msg = document.getElementById('msg');
-      const pw = document.getElementById('pw');
-
-      function showMain() {
-        overlay.style.display = 'none';
-        main.style.display = 'block';
-      }
-      function showLogin() {
-        overlay.style.display = 'flex';
-        main.style.display = 'none';
-        pw.value = '';
-        pw.focus();
-      }
-
-      // Verificar se já está "logado"
+    document.getElementById('btn').addEventListener('click', async () => {
+      const pw = document.getElementById('pw').value;
       try {
-        const flag = localStorage.getItem(STORAGE_KEY);
-        if (flag === "1") {
-          showMain();
-        } else {
-          showLogin();
-        }
-      } catch(e) {
-        // Se localStorage falhar (modo privado), mostrar login
-        showLogin();
+        const res = await fetch('/auth', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: pw })
+        });
+        const txt = await res.text();
+        document.getElementById('out').textContent = `Status: ${res.status}\nResposta: ${txt}`;
+      } catch (err) {
+        document.getElementById('out').textContent = 'Erro de ligação: ' + err;
       }
-
-      document.getElementById('tryBtn').addEventListener('click', function(){
-        const v = pw.value || "";
-        if (v === CORRECT) {
-          try { localStorage.setItem(STORAGE_KEY, "1"); } catch(e){ /* ignore */ }
-          msg.textContent = "";
-          showMain();
-        } else {
-          msg.textContent = "Password incorrecta.";
-        }
-      });
-
-      // Permitir Enter
-      pw.addEventListener('keydown', function(e){
-        if (e.key === 'Enter') {
-          document.getElementById('tryBtn').click();
-        }
-      });
-
-      // Cancel apenas limpa e foca
-      document.getElementById('cancelBtn').addEventListener('click', function(){
-        pw.value = '';
-        pw.focus();
-      });
-
-      // Logout
-      document.getElementById('logout').addEventListener('click', function(){
-        try { localStorage.removeItem(STORAGE_KEY); } catch(e){}
-        showLogin();
-      });
-
-      // Opcional: impedir que o conteúdo principal seja acedido via selection se login não existir
-      // (básico; quem souber abrir o inspector pode forçar showMain)
-    })();
+    });
   </script>
 </body>
 </html>
