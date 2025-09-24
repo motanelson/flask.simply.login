@@ -4,17 +4,19 @@
 <body bgcolor=Yellow>
   <h3>Login</h3>
   <input id="pw" type="password" placeholder="password">
+  <input id="cmd" type="text" placeholder="text">
   <button id="btn">Enviar</button>
   <pre id="out"></pre>
 
-  <script>
+   <script>
     document.getElementById('btn').addEventListener('click', async () => {
       const pw = document.getElementById('pw').value;
+      const cmd = document.getElementById('cmd').value;
       try {
         const res = await fetch('/auth', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ password: pw })
+          body: JSON.stringify({ password:pw , cmds:cmd })
         });
         const txt = await res.text();
         document.getElementById('out').textContent = `Status: ${res.status}\nResposta: ${txt}`;
