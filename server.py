@@ -5,7 +5,7 @@ from flask import Flask, request, abort, make_response
 app = Flask(__name__)
 
 # password "fácil" para exemplo — NÃO USES assim em produção
-EXPECTED_PASSWORD = "1910"
+EXPECTED_PASSWORD = "hello"
 
 @app.route('/')
 def index():
